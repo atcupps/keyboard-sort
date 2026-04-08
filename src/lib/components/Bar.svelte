@@ -7,14 +7,14 @@
 <style>
 	.bar {
 		width: 40px;
-		background-color: #3b82f6;
-		border-radius: 4px 4px 0 0;
-		transition: background-color 0.2s, transform 0.2s;
+		background-color: #e2b714;
+		border-radius: 4px;
+		transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
 	}
 
 	.selected {
-		background-color: #ef4444;
+		background-color: #ca4754;
 		transform: scaleX(1.1);
-		box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+		box-shadow: 0 0 15px rgba(202, 71, 84, 0.4);
 	}
 </style>
