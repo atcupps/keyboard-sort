@@ -519,7 +519,23 @@
 		background-color: #323437;
 		color: #d1d0c5;
 		font-family: 'Lexend', 'JetBrains Mono', monospace;
-		overflow: hidden;
+		overflow-x: hidden;
+		--bar-width: 40px;
+		--bar-gap: 12px;
+	}
+
+	@media (max-width: 600px) {
+		:global(body) {
+			--bar-width: 24px;
+			--bar-gap: 6px;
+		}
+	}
+
+	@media (max-width: 400px) {
+		:global(body) {
+			--bar-width: 18px;
+			--bar-gap: 4px;
+		}
 	}
 
 	main {
@@ -529,6 +545,9 @@
 		justify-content: center;
 		min-height: 100vh;
 		gap: 3rem;
+		width: 100%;
+		padding: 1rem;
+		box-sizing: border-box;
 	}
 
 	.header {
@@ -697,9 +716,10 @@
 	}
 
 	.visualizer-container {
-		padding: 1rem 2rem;
+		padding: 1rem;
 		border-radius: 16px;
 		transition: filter 0.3s;
+		max-width: 100%;
 	}
 
 	.blurred {
@@ -710,20 +730,21 @@
 	.visualizer {
 		display: flex;
 		align-items: flex-end;
-		gap: 12px;
+		gap: var(--bar-gap);
 		height: 250px;
-		min-width: 508px;
 		padding-bottom: 12px;
+		justify-content: center;
 	}
 
 	.indicators {
 		display: flex;
-		gap: 12px;
+		gap: var(--bar-gap);
 		margin-top: 12px;
+		justify-content: center;
 	}
 
 	.indicator {
-		width: 40px;
+		width: var(--bar-width);
 		display: flex;
 		justify-content: center;
 		overflow: visible;
@@ -744,6 +765,14 @@
 		position: relative;
 		z-index: 5;
 		transition: all 0.2s;
+	}
+
+	@media (max-width: 600px) {
+		.key-label {
+			font-size: 0.6rem;
+			padding: 2px 4px;
+			min-width: 18px;
+		}
 	}
 
 	.keycap.pressed {
@@ -926,6 +955,7 @@
 		padding: 2rem;
 		background: #2c2e31;
 		border-radius: 12px;
+		flex-wrap: wrap;
 	}
 
 	.key-input-group {
@@ -934,7 +964,7 @@
 		align-items: center;
 		gap: 12px;
 		flex: 1;
-		min-width: 0;
+		min-width: 60px;
 	}
 
 	.key-input-group label {

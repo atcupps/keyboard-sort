@@ -6,10 +6,10 @@
 
 <style>
 	.bar {
-		width: 40px;
+		width: var(--bar-width, 40px);
 		background-color: #e2b714;
 		border-radius: 4px;
-		transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+		transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s, width 0.2s;
 	}
 
 	.selected {
