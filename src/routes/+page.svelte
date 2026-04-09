@@ -69,7 +69,6 @@
 			tutorialStep = (tutorialStep + 1) % 4;
 			
 			if (tutorialStep === 0) {
-				// Reset
 				tutorialHeights = [
 					{ id: 1, val: 3 * BASE_HEIGHT },
 					{ id: 2, val: 1 * BASE_HEIGHT },
@@ -85,14 +84,12 @@
 				tutorialSelectedIndex = null;
 				tutorialActiveKey = null;
 			} else if (tutorialStep === 1) {
-				// Select first bar (Pos 1 -> Key '1')
 				tutorialActiveKey = 0;
 				setTimeout(() => {
 					tutorialSelectedIndex = 0;
 					tutorialActiveKey = null;
 				}, 400);
 			} else if (tutorialStep === 2) {
-				// Swap with fourth bar (Pos 4 -> Key '4')
 				tutorialActiveKey = 3;
 				setTimeout(() => {
 					const temp = tutorialHeights[0];
@@ -117,7 +114,8 @@
 			const j = Math.floor(Math.random() * (i + 1));
 			[h[i], h[j]] = [h[j], h[i]];
 		}
-		if (checkIfSorted(h.map(x => x.val))) return generateRandomHeights();
+		const isDerangement = h.every((bar, i) => bar.val !== (i + 1) * BASE_HEIGHT);
+		if (!isDerangement) return generateRandomHeights();
 		return h;
 	}
 
@@ -253,6 +251,21 @@
 		return keyStr.toLowerCase().replace(/\s\+\s/g, '+');
 	}
 
+	function selectOrSwap(index: number) {
+		if (selectedIndex === index) {
+			selectedIndex = null;
+		} else if (selectedIndex === null) {
+			selectedIndex = index;
+		} else {
+			const temp = heights[selectedIndex];
+			heights[selectedIndex] = heights[index];
+			heights[index] = temp;
+			userSwaps++;
+			selectedIndex = null;
+			if (checkIfSorted(heights.map(x => x.val))) finishGame();
+		}
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
 		if (showModal || showTutorial) return;
 		const pressedKey = getEventKeyString(event);
@@ -265,18 +278,7 @@
 		const keyIdx = selectionKeys.findIndex(k => getMappedKeyString(k) === pressedKey);
 		if (keyIdx === -1) return;
 		event.preventDefault();
-		if (selectedIndex === keyIdx) {
-			selectedIndex = null;
-		} else if (selectedIndex === null) {
-			selectedIndex = keyIdx;
-		} else {
-			const temp = heights[selectedIndex];
-			heights[selectedIndex] = heights[keyIdx];
-			heights[keyIdx] = temp;
-			userSwaps++;
-			selectedIndex = null;
-			if (checkIfSorted(heights.map(x => x.val))) finishGame();
-		}
+		selectOrSwap(keyIdx);
 	}
 
 	function openCustomization() {
@@ -314,10 +316,10 @@
 		const ctx = canvas.getContext('2d');
 		if (ctx) {
 			ctx.fillStyle = '#323437'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-			ctx.fillStyle = '#e2b714'; ctx.font = 'bold 40px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Keyboard Sortcuts', canvas.width / 2, 80);
-			ctx.font = 'bold 120px sans-serif'; ctx.fillText(`${scoreStr}s`, canvas.width / 2, 240);
-			ctx.fillStyle = '#d1d0c5'; ctx.font = '600 30px sans-serif'; ctx.fillText('10 BARS SORTED', canvas.width / 2, 310);
-			ctx.font = '400 20px sans-serif'; ctx.globalAlpha = 0.5; ctx.fillText('keyboard-sortcuts.app', canvas.width / 2, 360); ctx.globalAlpha = 1.0;
+			ctx.fillStyle = '#e2b714'; ctx.font = 'bold 40px Lexend, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Keyboard Sortcuts', canvas.width / 2, 80);
+			ctx.font = 'bold 120px Lexend, sans-serif'; ctx.fillText(`${scoreStr}s`, canvas.width / 2, 240);
+			ctx.fillStyle = '#d1d0c5'; ctx.font = '600 30px Lexend, sans-serif'; ctx.fillText('10 BARS SORTED', canvas.width / 2, 310);
+			ctx.font = '400 20px Lexend, sans-serif'; ctx.globalAlpha = 0.5; ctx.fillText('keyboard-sortcuts.app', canvas.width / 2, 360); ctx.globalAlpha = 1.0;
 		}
 		if (navigator.share) {
 			try {
@@ -344,27 +346,56 @@
 {#if showTutorial}
 	<div class="modal-backdrop">
 		<div class="modal tutorial-modal">
-			<h2>how to play</h2>
-			<div class="tutorial-animation">
-				<div class="visualizer mini-visualizer">
-					{#each tutorialHeights as h, i (h.id)}
-						<div animate:flip={{ duration: 400 }}>
-							<Bar height={h.val} selected={tutorialSelectedIndex === i} />
+			<h2>welcome to keyboard sortcuts</h2>
+			
+			<div class="tutorial-section">
+				<h3>the goal</h3>
+				<p>sort the bars from <strong>shortest</strong> to <strong>tallest</strong> as fast as you can.</p>
+				<div class="goal-diagram">
+					<div class="diagram-state">
+						<div class="mini-bars unsorted">
+							<div class="mini-bar" style="height: 15px"></div>
+							<div class="mini-bar" style="height: 25px"></div>
+							<div class="mini-bar" style="height: 10px"></div>
+							<div class="mini-bar" style="height: 20px"></div>
 						</div>
-					{/each}
-				</div>
-				<div class="indicators">
-					{#each selectionKeys as key, i}
-						<div class="indicator">
-							<span class="key-label keycap" class:pressed={tutorialActiveKey === i}>{key}</span>
+						<span>unsorted</span>
+					</div>
+					<div class="diagram-arrow">→</div>
+					<div class="diagram-state">
+						<div class="mini-bars sorted">
+							<div class="mini-bar" style="height: 10px"></div>
+							<div class="mini-bar" style="height: 15px"></div>
+							<div class="mini-bar" style="height: 20px"></div>
+							<div class="mini-bar" style="height: 25px"></div>
 						</div>
-					{/each}
+						<span>sorted!</span>
+					</div>
 				</div>
 			</div>
-			
-			<div class="tutorial-steps">
-				<p class:active={tutorialStep === 1}>1. select a bar using its key</p>
-				<p class:active={tutorialStep === 2}>2. press another key to swap</p>
+
+			<div class="tutorial-section">
+				<h3>how to play</h3>
+				<div class="tutorial-animation">
+					<div class="visualizer mini-visualizer">
+						{#each tutorialHeights as h, i (h.id)}
+							<div animate:flip={{ duration: 400 }}>
+								<Bar height={h.val * 0.6} selected={tutorialSelectedIndex === i} />
+							</div>
+						{/each}
+					</div>
+					<div class="indicators">
+						{#each selectionKeys as key, i}
+							<div class="indicator">
+								<span class="key-label keycap" class:pressed={tutorialActiveKey === i}>{key}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+				<div class="tutorial-steps">
+					<p class:active={tutorialStep === 1}>1. select a bar using its key (or <strong>tap</strong> it)</p>
+					<p class:active={tutorialStep === 2}>2. press another key (or <strong>tap</strong> another bar) to swap</p>
+				</div>
 			</div>
 
 			<div class="modal-actions">
@@ -408,9 +439,11 @@
 
 	<div class="game-container">
 		{#if gameState === 'idle'}
-			<div class="overlay">
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="overlay" onclick={startGame} style="cursor: pointer;">
 				<h2>ready?</h2>
-				<p>press <strong>space</strong> to start</p>
+				<p>press <strong>space</strong> or <strong>tap</strong> to start</p>
 			</div>
 		{/if}
 
@@ -424,7 +457,9 @@
 						<button class="share-button" onclick={shareScore}>
 							{copied ? 'copied!' : 'share score'}
 						</button>
-						<p class="restart-hint">press <strong>space</strong> to restart</p>
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+						<p class="restart-hint" onclick={startGame} style="cursor: pointer;">press <strong>space</strong> or <strong>tap</strong> to restart</p>
 					</div>
 					<div class="comparison-panel">
 						<h3>algorithm comparison</h3>
@@ -448,14 +483,18 @@
 		<div class="visualizer-container" class:blurred={gameState !== 'playing'}>
 			<div class="visualizer">
 				{#each heights as h, i (h.id)}
-					<div animate:flip={{ duration: 400 }}>
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div animate:flip={{ duration: 400 }} onclick={() => selectOrSwap(i)} style="cursor: pointer;">
 						<Bar height={h.val} selected={selectedIndex === i} />
 					</div>
 				{/each}
 			</div>
 			<div class="indicators">
-				{#each selectionKeys as key}
-					<div class="indicator">
+				{#each selectionKeys as key, i}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div class="indicator" onclick={() => selectOrSwap(i)} style="cursor: pointer;">
 						<span class="key-label">{key}</span>
 					</div>
 				{/each}
@@ -465,7 +504,7 @@
 
 	<div class="controls">
 		<div class="instructions">
-			<p>use your custom keys to select and swap bars.</p>
+			<p>use your custom keys or <strong>tap</strong> to select and swap bars.</p>
 			<p>press <strong>space</strong> to restart at any time.</p>
 		</div>
 		<button class="customize-btn" onclick={openCustomization}>
@@ -779,33 +818,99 @@
 
 	.tutorial-modal {
 		max-width: 700px;
+		max-height: 90vh;
+		overflow-y: auto;
+	}
+
+	.tutorial-section {
+		margin-bottom: 2.5rem;
+		text-align: center;
+	}
+
+	.tutorial-section h3 {
+		font-size: 1.125rem;
+		color: #d1d0c5;
+		margin-bottom: 0.75rem;
+		text-transform: lowercase;
+	}
+
+	.tutorial-section p {
+		color: #646669;
+		margin-bottom: 1.5rem;
+	}
+
+	.goal-diagram {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 2rem;
+		padding: 1.5rem;
+		background: #2c2e31;
+		border-radius: 12px;
+	}
+
+	.diagram-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.diagram-state span {
+		font-size: 0.8rem;
+		color: #646669;
+		text-transform: lowercase;
+	}
+
+	.diagram-arrow {
+		font-size: 1.5rem;
+		color: #646669;
+	}
+
+	.mini-bars {
+		display: flex;
+		align-items: flex-end;
+		gap: 4px;
+		height: 30px;
+	}
+
+	.mini-bar {
+		width: 8px;
+		background: #646669;
+		border-radius: 2px;
+	}
+
+	.sorted .mini-bar {
+		background: #e2b714;
 	}
 
 	.tutorial-animation {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 1.5rem;
-		margin: 2rem 0;
-		padding: 2rem;
+		gap: 1rem;
+		margin: 1rem 0;
+		padding: 1.5rem;
 		background: #2c2e31;
-		border-radius: 16px;
+		border-radius: 12px;
 	}
 
 	.mini-visualizer {
 		min-width: unset;
 		gap: 8px;
+		height: 160px;
 	}
 
 	.tutorial-steps {
 		text-align: center;
-		margin-bottom: 2rem;
+		margin-top: 1rem;
 	}
 
 	.tutorial-steps p {
-		margin: 0.5rem 0;
+		margin: 0.25rem 0;
 		color: #646669;
 		transition: color 0.3s;
+		font-size: 0.9rem;
 	}
 
 	.tutorial-steps p.active {
@@ -845,7 +950,7 @@
 		background: #323437;
 		border: 2px solid #3e4144;
 		border-radius: 8px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: 'Lexend', 'JetBrains Mono', monospace;
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: #d1d0c5;
