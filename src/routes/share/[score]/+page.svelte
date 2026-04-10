@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	
 	const score = page.params.score;
-	const shareUrl = `http://localhost:5173/share/${score}`;
+	const shareUrl = `https://keyboard-sort.vercel.app/share/${score}`;
 	const ogImageUrl = `https://placehold.co/1200x630/323437/e2b714?text=Keyboard+Sortcuts:+${score}s`;
 </script>
 
